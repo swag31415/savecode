@@ -12,10 +12,12 @@ proc add_text*(md: var string; text: string) =
 
 # Add a markdown title
 proc add_title*(md: var string; title: string; level: int) =
-  md.add_line(repeat('#', level) & ' ' & title)
+  assert(level >= 0)
+  md.add_line(repeat('#', level + 1) & ' ' & title)
 
 # Add a list
 proc add_list_item*(md: var string; text: string; level: int) =
+  assert(level >= 0)
   md.add_line(repeat("  ", level) & "- " & text)
 
 # Add a code block
