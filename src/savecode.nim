@@ -45,15 +45,17 @@ md.add_line("Directory structure")
 while len(dir_stack) > 0:
   let (dir, lvl) = dir_stack.pop()
   let dir_name = lastPathPart(dir)
-  md.add_list_item(&"[{dir_name}](#{dir_name})", lvl)
+  # Add the directory to the structure and add a title for it
+  md.add_list_item(&"**{dir_name}**", lvl)
   code_md.add_title(dir_name, lvl)
+  # For every file and folder in the directory
   for kind, path in walkDir(dir):
     # Ignore hidden files
     if isHidden(path): continue
     # Get a name
     let name = lastPathPart(path)
     # Ignore untracked files but add them to the directory structure
-    # Do the same for large files
+    # Do the same for files larger than 50 kb
     if untracked.anyIt(sameFile(it, path)) or fileExists(path) and getFileSize(path) > 50 * 1024:
       md.add_list_item(name, lvl + 1)
       continue
@@ -63,27 +65,21 @@ while len(dir_stack) > 0:
         dir_stack.add((path, lvl + 1))
       of pcFile: # Parse files according to extension
         let ext = path[searchExtPos(path)+1..^1]
-        let content = readFile(path)
-        case ext:
-          of "", "py", "nim", "nimble", "c", "h", "cpp", "java", "gradle", "md", "json", "js", "css", "bat", "ahk", "m":
-            code_md.add_title(name, lvl + 1)
-            code_md.add_code(content, ext)
-          of "ejs", "html":
-            code_md.add_title(name, lvl + 1)
-            code_md.add_code(content, "html")
-          of "classpath", "project", "fxml", "xml":
-            code_md.add_title(name, lvl + 1)
-            code_md.add_code(content, "xml")
-          of "txt", "gitignore", "gitattributes", "cfg", "log", "properties", "config":
-            code_md.add_title(name, lvl + 1)
-            code_md.add_code(content, "")
+        let block_type = case ext:
+          of "", "py", "nim", "nimble", "c", "h", "cpp", "java", "gradle",
+            "md", "json", "js", "css", "bat", "ahk", "m": ext
+          of "ejs", "html": "html"
+          of "classpath", "project", "fxml", "xml": "xml"
+          of "txt", "gitignore", "gitattributes", "cfg", "log", "properties", "config": ""
           else: continue
+        code_md.add_title(name, lvl + 1)
+        code_md.add_code(readFile(path), block_type)
         md.add_list_item(&"[{name}](#{name})", lvl + 1)
       else: discard
 
 # Add git graph
 const git_graph_cmd = "git log --pretty=fuller --abbrev-commit --all --graph --decorate"
-md.add_title("Git Graph", 1)
+md.add_title("Git Graph", 0)
 md.add_code(execCmdEx(git_graph_cmd).output, "git")
 
 # Move back to the directory of this exe
