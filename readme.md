@@ -1,11 +1,10 @@
 # savecode
-Turn an old Git repo into a single Markdown file ready to be archived
+Converts git repositories into single Markdown documents for archival purposes
 
 ## Usage
 Run with nimble
-```bash
-nimble run savecode
-```
+
+![usage.gif](usage.gif)
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
